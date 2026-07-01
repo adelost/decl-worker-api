@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>360 Viewer</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/core@5/index.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/video-plugin@5/index.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #000; overflow: hidden; }
+    #viewer { width: 100vw; height: 100vh; }
+    #err { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.9);
+      color: #f44; font: 13px/1.4 monospace; padding: 8px; z-index: 9999;
+      display: none; white-space: pre-wrap; max-height: 40vh; overflow: auto; }
+  </style>
+</head>
+<body>
+  <div id="viewer"></div>
+  <div id="err"></div>
+
+  <script>
+    const errEl = document.getElementById('err');
+    window.onerror = (m, s, l) => { errEl.style.display = 'block'; errEl.textContent += m + '\n'; };
+    window.onunhandledrejection = e => { errEl.style.display = 'block'; errEl.textContent += e.reason + '\n'; };
+  </script>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160/build/three.module.js",
+      "@photo-sphere-viewer/core": "https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/core@5/index.module.js",
+      "@photo-sphere-viewer/equirectangular-video-adapter": "https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/equirectangular-video-adapter@5/index.module.js",
+      "@photo-sphere-viewer/video-plugin": "https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/video-plugin@5/index.module.js",
+      "@photo-sphere-viewer/gyroscope-plugin": "https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/gyroscope-plugin@5/index.module.js",
+      "@photo-sphere-viewer/autorotate-plugin": "https://cdn.jsdelivr.net/npm/@photo-sphere-viewer/autorotate-plugin@5/index.module.js"
+    }
+  }
+  </script>
+
+  <script type="module">
+    try {
+      const { Viewer } = await import('@photo-sphere-viewer/core');
+      const { EquirectangularVideoAdapter } = await import('@photo-sphere-viewer/equirectangular-video-adapter');
+      const { VideoPlugin } = await import('@photo-sphere-viewer/video-plugin');
+
+      const params = new URLSearchParams(location.search);
+      const videoSrc = params.get('src') || './test.mp4';
+
+      const viewer = new Viewer({
+        container: document.querySelector('#viewer'),
+        adapter: [EquirectangularVideoAdapter, {
+          autoplay: false,
+          muted: false,
+        }],
+        panorama: {
+          source: videoSrc,
+        },
+        plugins: [
+          [VideoPlugin],
+        ],
+        navbar: ['videoPlay', 'videoTime', 'fullscreen'],
+        defaultYaw: 0,
+        defaultPitch: 0,
+        minFov: 30,
+        maxFov: 90,
+      });
+
+      window.__viewer = viewer;
+    } catch (err) {
+      const errEl = document.getElementById('err');
+      errEl.style.display = 'block';
+      errEl.textContent += err.stack || err.message || err;
+    }
+  </script>
+</body>
+</html>

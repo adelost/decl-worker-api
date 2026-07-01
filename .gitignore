@@ -40,3 +40,4 @@ Thumbs.db
 
 # Ray
 ray_results/
+.agents/
