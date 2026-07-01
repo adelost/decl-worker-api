@@ -12,7 +12,7 @@ import { runEffects } from "./engine/effects.js";
 let _connection: Redis | null = null;
 let _queues: Record<string, Queue> | null = null;
 
-function getConnection(): Redis {
+export function getConnection(): Redis {
   if (!_connection) {
     _connection = new Redis(process.env.REDIS_URL || "redis://localhost:6379", {
       maxRetriesPerRequest: null,

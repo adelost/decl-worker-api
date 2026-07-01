@@ -6,3 +6,5 @@ export * from "./engine/chunking.js";
 export * from "./engine/streaming.js";
 export * from "./backends/modal.js";
 export * from "./backends/ray.js";
+export * from "./backends/local.js";
+export * from "./timing.js";

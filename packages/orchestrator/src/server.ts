@@ -6,9 +6,11 @@ import Fastify from "fastify";
 import cors from "@fastify/cors";
 import type { Task, TaskResult } from "@dwa/core";
 import { registerBackend } from "@dwa/core";
-import { enqueueTask, getTaskStatus, createWorkers, shutdown } from "./queue.js";
+import { enqueueTask, getTaskStatus, createWorkers, shutdown, getConnection } from "./queue.js";
+import { TimingStore } from "./timing.js";
 import { ModalBackend } from "./backends/modal.js";
 import { RayBackend } from "./backends/ray.js";
+import { LocalBackend } from "./backends/local.js";
 
 const fastify = Fastify({
   logger: true,
@@ -97,6 +99,18 @@ if (rayUrl) {
   fastify.log.info(`Registered Ray backend: ${rayUrl}`);
 }
 
+const localUrl = process.env.LOCAL_WORKER_URL;
+if (localUrl) {
+  registerBackend(
+    new LocalBackend({
+      url: localUrl,
+      pollInterval: parseInt(process.env.LOCAL_POLL_INTERVAL || "500"),
+      timeout: parseInt(process.env.LOCAL_TIMEOUT || "600"),
+    })
+  );
+  fastify.log.info(`Registered Local backend: ${localUrl}`);
+}
+
 // Health check
 fastify.get("/health", async () => {
   return { status: "healthy", timestamp: new Date().toISOString() };
@@ -177,6 +191,16 @@ fastify.post<{ Body: Task }>("/api/visualize", async (request, reply) => {
     mermaid: diagram,
     url: `https://mermaid.live/edit#pako:${Buffer.from(JSON.stringify({ code: diagram })).toString("base64")}`,
   };
+});
+
+// Timing predictions
+fastify.get<{
+  Querystring: { inputDuration: number; steps: string };
+}>("/api/timing/predictions", async (request) => {
+  const { inputDuration, steps: stepsStr } = request.query;
+  const stepList = stepsStr.split(",").map((s) => s.trim()).filter(Boolean);
+  const store = new TimingStore(getConnection());
+  return store.predictAll(stepList, inputDuration);
 });
 
 // Cancel task

@@ -5,7 +5,7 @@
 import type { Effect } from "./effect.js";
 import type { ResourceRequirements } from "./resource.js";
 
-export type BackendType = "modal" | "ray" | "auto";
+export type BackendType = "modal" | "ray" | "local" | "auto";
 export type QueueType = "default" | "gpu" | "cpu";
 
 export interface Task {

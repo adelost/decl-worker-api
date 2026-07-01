@@ -17,6 +17,16 @@ import { processPipelineSequential } from "./sequential.js";
 
 export type ProgressCallback = (progress: number) => void;
 
+/** Sub-step progress detail (e.g. "frame 30/60", warmup timing) */
+export interface StepProgress {
+  /** 0-1 progress within this step */
+  progress: number;
+  /** Human-readable message, e.g. "Frame 30/60" */
+  message?: string;
+  /** Timing breakdown, e.g. { warmup: 2.1, inference: 15.3 } */
+  subTimings?: Record<string, number>;
+}
+
 /** Step execution status for observability */
 export interface StepStatus {
   id: string;
@@ -27,7 +37,9 @@ export interface StepStatus {
   duration?: number;
   error?: string;
   result?: unknown;
-  retryAttempt?: number;  // Current retry attempt (1, 2, 3...)
+  retryAttempt?: number;
+  /** Sub-step progress (updated during execution) */
+  stepProgress?: StepProgress;
 }
 
 /** Pipeline execution result with full observability */
@@ -41,7 +53,7 @@ export interface PipelineResult {
 }
 
 /** Event emitter for pipeline observability */
-export type PipelineEventType = "step:start" | "step:complete" | "step:error" | "pipeline:complete";
+export type PipelineEventType = "step:start" | "step:complete" | "step:error" | "step:progress" | "pipeline:complete";
 export interface PipelineEvent {
   type: PipelineEventType;
   stepId?: string;

@@ -28,6 +28,7 @@ export interface Backend {
 export interface BackendConfig {
   modal?: ModalConfig;
   ray?: RayConfig;
+  local?: LocalConfig;
 }
 
 export interface ModalConfig {
@@ -44,4 +45,13 @@ export interface RayConfig {
   url: string;
   /** Ray dashboard URL (optional) */
   dashboardUrl?: string;
+}
+
+export interface LocalConfig {
+  /** Python worker base URL, e.g. "http://localhost:8080" */
+  url: string;
+  /** Poll interval in ms (default: 500) */
+  pollInterval?: number;
+  /** Default timeout in seconds (default: 600) */
+  timeout?: number;
 }
